@@ -1,63 +1,60 @@
-import { useState, type ChangeEvent, type FormEvent } from "react"
+import { type ChangeEvent, type FormEvent } from "react"
 import Navbar from "../components/Navbar"
 import { ArrowLeft, Image } from "lucide-react"
 import { Link } from 'react-router-dom'
 import { useRouter } from '../hooks/useRouter';
+import { useAppDispatch, useAppSelector } from '../hooks/reduxHooks';
+import { 
+  setImagePreview, 
+  setCaption, 
+  setIsSubmitting, 
+  addPost,
+  resetForm
+} from '../features/posts/postsSlice';
+import { toast } from "react-toastify";
 
-export interface Post {
-    id: string
-    caption: string
-    image: string
-    likes: number
-    timestamp: string
-    isLiked: boolean
-  }
-
-export default function CreatePost() {
+const CreatePost = () => {
   const router = useRouter();
-  const [caption, setCaption] = useState("")
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const dispatch = useAppDispatch();
+  
+  const { caption, imagePreview, isSubmitting } = useAppSelector(state => state.posts);
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        dispatch(setImagePreview(reader.result as string));
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!imagePreview) {
-      alert("Please select an image")
-      return
+      toast("Please select an image");
+      return;
     }
 
-    setIsSubmitting(true)
+    dispatch(setIsSubmitting(true));
 
-    const newPost: Post = {
+    const newPost = {
       id: Date.now().toString(),
       caption,
       image: imagePreview,
       likes: 0,
       timestamp: new Date().toISOString(),
       isLiked: false,
-    }
+    };
 
-    const existingPosts = localStorage.getItem("posts")
-    const posts = existingPosts ? JSON.parse(existingPosts) : []
-
-    const updatedPosts = [newPost, ...posts]
-
-    localStorage.setItem("posts", JSON.stringify(updatedPosts))
-
-    router.push("/")
-  }
+    console.log(caption)
+    
+    dispatch(addPost(newPost));
+    dispatch(resetForm());
+    router.push("/");
+  };
 
   return (
     <main className="min-h-screen bg-gray-100">
@@ -87,7 +84,7 @@ export default function CreatePost() {
                     className="mt-2 text-sm text-blue-500 hover:underline"
                     onClick={(e) => {
                       e.stopPropagation()
-                      setImagePreview(null)
+                      dispatch(setImagePreview(null))
                     }}
                   >
                     Change image
@@ -113,7 +110,7 @@ export default function CreatePost() {
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Write a caption..."
               value={caption}
-              onChange={(e) => setCaption(e.target.value)}
+              onChange={(e) => dispatch(setCaption(e.target.value))}
             />
           </div>
 
@@ -130,3 +127,4 @@ export default function CreatePost() {
   )
 }
 
+export default CreatePost
