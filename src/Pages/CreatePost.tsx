@@ -40,7 +40,6 @@ export default function CreatePost() {
 
     setIsSubmitting(true)
 
-    // Create new post
     const newPost: Post = {
       id: Date.now().toString(),
       caption,
@@ -50,17 +49,13 @@ export default function CreatePost() {
       isLiked: false,
     }
 
-    // Get existing posts from localStorage
     const existingPosts = localStorage.getItem("posts")
     const posts = existingPosts ? JSON.parse(existingPosts) : []
 
-    // Add new post to the beginning of the array
     const updatedPosts = [newPost, ...posts]
 
-    // Save to localStorage
     localStorage.setItem("posts", JSON.stringify(updatedPosts))
 
-    // Redirect to home page
     router.push("/")
   }
 
